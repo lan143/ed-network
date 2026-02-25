@@ -1,0 +1,27 @@
+{
+    "name": "ed-network",
+    "keywords": "iot, home, automation, esp32",
+    "description": "Network lib for Arduino ESP32",
+    "authors":
+    {
+      "name": "Artem Kravchenko",
+      "url": "https://lan143.ru"
+    },
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/lan143/ed-network.git"
+    },
+    "version": "0.1.0",
+    "frameworks": "arduino",
+    "platforms": ["espressif32"],
+    "dependencies": [
+      {
+        "name": "ETH"
+      },
+      {
+        "name": "WIFI"
+      }
+    ]
+  }
+  
