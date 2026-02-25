@@ -22,7 +22,7 @@ namespace EDNetwork
         NetworkMgr() {}
 
         void init(
-            NetworkConfig config,
+            Config config,
             bool hasEth = false,
             uint8_t phy_addr=ETH_PHY_ADDR, 
             int power=ETH_PHY_POWER,
