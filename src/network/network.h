@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <ETH.H>
 #include <list>
 
 #include "network_config.h"
@@ -50,7 +51,7 @@ namespace EDNetwork
         void runWifiAP();
 
     private:
-        Config* _config;
+        Config _config;
         bool _isWiFiConnected = false;
         bool _isEthernetConnected = false;
         bool _prevIsConnected = false;

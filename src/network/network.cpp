@@ -5,15 +5,15 @@
 #include "network.h"
 
 void EDNetwork::NetworkMgr::init(
-    EDNetwork::Config* config,
-    bool hasEth = false,
-    uint8_t phy_addr=ETH_PHY_ADDR, 
-    int power=ETH_PHY_POWER,
-    int mdc=ETH_PHY_MDC,
-    int mdio=ETH_PHY_MDIO,
-    eth_phy_type_t type=ETH_PHY_TYPE,
-    eth_clock_mode_t clk_mode=ETH_CLK_MODE,
-    bool use_mac_from_efuse=false
+    EDNetwork::Config config,
+    bool hasEth /* = false */,
+    uint8_t phy_addr /* = ETH_PHY_ADDR */, 
+    int power /* = ETH_PHY_POWER */,
+    int mdc /* = ETH_PHY_MDC */,
+    int mdio /* = ETH_PHY_MDIO */,
+    eth_phy_type_t type /* = ETH_PHY_TYPE */,
+    eth_clock_mode_t clk_mode /* = ETH_CLK_MODE */,
+    bool use_mac_from_efuse /* = false */
 ) {
     ESP_LOGI("network", "init start");
     _config = config;
@@ -41,7 +41,7 @@ void EDNetwork::NetworkMgr::init(
 
     if (hasEth) {
         runEthernet(phy_addr, power, mdc, mdio, type, clk_mode, use_mac_from_efuse);
-    } else if (!_config->isAPMode) {
+    } else if (!_config.isAPMode) {
         runWifi();
     } else {
         runWifiAP();
@@ -71,7 +71,7 @@ void EDNetwork::NetworkMgr::loop()
             if (_failedConnectCounts >= 30) {
                 switch (_mode) {
                     case EDNetwork::MODE_ETHERNET:
-                        if (!_config->isAPMode) {
+                        if (!_config.isAPMode) {
                             runWifi();
                         } else {
                             runWifiAP();
@@ -100,7 +100,7 @@ void EDNetwork::NetworkMgr::runEthernet(
 ) {
     ESP_LOGI("network", "run in ethernet mode");
 
-    ETH.begin(ETH_ADDR, -1, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE, ETH_CLK_MODE);
+    ETH.begin(phy_addr, power, mdc, mdio, type, clk_mode, use_mac_from_efuse);
     _mode = EDNetwork::MODE_ETHERNET;
 }
 
@@ -109,7 +109,7 @@ void EDNetwork::NetworkMgr::runWifi()
     ESP_LOGI("network", "run in wifi client mode");
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(_config->wifiSSID, _config->wifiPassword);
+    WiFi.begin(_config.wifiSSID, _config.wifiPassword);
     _mode = EDNetwork::MODE_WIFI;
 }
 
@@ -118,6 +118,6 @@ void EDNetwork::NetworkMgr::runWifiAP()
     ESP_LOGI("wifi", "run in wifi access point mode");
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(_config->wifiAPSSID, _config->wifiAPHasPassword ? _config->wifiAPPassword : NULL);
+    WiFi.softAP(_config.wifiAPSSID, _config.wifiAPHasPassword ? _config.wifiAPPassword : NULL);
     _mode = EDNetwork::MODE_WIFI_AP;
 }

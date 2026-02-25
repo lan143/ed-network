@@ -15,13 +15,6 @@
     "version": "0.1.0",
     "frameworks": "arduino",
     "platforms": ["espressif32"],
-    "dependencies": [
-      {
-        "name": "ETH"
-      },
-      {
-        "name": "WIFI"
-      }
-    ]
+    "dependencies": []
   }
   
