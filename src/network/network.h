@@ -49,6 +49,7 @@ namespace EDNetwork
         );
         void runWifi();
         void runWifiAP();
+        void runFallbackWifiAP();
 
     private:
         Config _config;
@@ -56,9 +57,11 @@ namespace EDNetwork
         bool _isEthernetConnected = false;
         bool _prevIsConnected = false;
 
-        Modes _mode;
-        uint64_t _lastCheckConnectTime;
-        uint32_t _failedConnectCounts;
+        bool _isFallbackAP = false;
+        Modes _preFallbackMode = MODE_WIFI_AP;
+        Modes _mode = MODE_WIFI_AP;
+        uint64_t _lastCheckConnectTime = 0;
+        uint32_t _failedConnectCounts = 0;
         std::list<ConnectFunction> _connectCallbacks;
     };
 

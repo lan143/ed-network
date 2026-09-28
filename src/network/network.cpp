@@ -61,7 +61,26 @@ void EDNetwork::NetworkMgr::loop()
             _prevIsConnected = isConnected();
         }
 
-        if (_mode != EDNetwork::MODE_WIFI_AP) {
+        if (_mode == EDNetwork::MODE_WIFI_AP) {
+            if (_isFallbackAP && isConnected()) {
+                if (_isWiFiConnected) {
+                    ESP_LOGI("network", "fallback access point shutting down, wifi recovered");
+                    WiFi.softAPdisconnect(false);
+                    WiFi.mode(WIFI_STA);
+                    _mode = EDNetwork::MODE_WIFI;
+
+                    _failedConnectCounts = 0;
+                    _isFallbackAP = false;
+                } else if (_isEthernetConnected) {
+                    ESP_LOGI("network", "fallback access point shutting down, ethernet recovered");
+                    WiFi.softAPdisconnect(true);
+                    _mode = EDNetwork::MODE_ETHERNET;
+
+                    _failedConnectCounts = 0;
+                    _isFallbackAP = false;
+                }
+            }
+        } else {
             if (!isConnected()) {
                 _failedConnectCounts++;
             } else {
@@ -74,11 +93,13 @@ void EDNetwork::NetworkMgr::loop()
                         if (!_config.isAPMode) {
                             runWifi();
                         } else {
-                            runWifiAP();
+                            _preFallbackMode = _mode;
+                            runFallbackWifiAP();
                         }
                         break;
                     case EDNetwork::MODE_WIFI:
-                        runWifiAP();
+                        _preFallbackMode = _mode;
+                        runFallbackWifiAP();
                 }
 
                 _failedConnectCounts = 0;
@@ -119,5 +140,24 @@ void EDNetwork::NetworkMgr::runWifiAP()
 
     WiFi.mode(WIFI_AP);
     WiFi.softAP(_config.wifiAPSSID, _config.wifiAPHasPassword ? _config.wifiAPPassword : NULL);
+    _mode = EDNetwork::MODE_WIFI_AP;
+}
+
+void EDNetwork::NetworkMgr::runFallbackWifiAP()
+{
+    if (_preFallbackMode == EDNetwork::MODE_WIFI) {
+        ESP_LOGI("network", "run in fallback wifi access point mode keeping sta alive");
+
+        WiFi.mode(WIFI_AP_STA);
+        WiFi.softAP(_config.wifiAPSSID, _config.wifiAPHasPassword ? _config.wifiAPPassword : NULL);
+        WiFi.begin(_config.wifiSSID, _config.wifiPassword);
+    } else {
+        ESP_LOGI("network", "run in fallback wifi access point mode");
+
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP(_config.wifiAPSSID, _config.wifiAPHasPassword ? _config.wifiAPPassword : NULL);
+    }
+
+    _isFallbackAP = true;
     _mode = EDNetwork::MODE_WIFI_AP;
 }
