@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <ETH.H>
+#include <ETH.h>
 #include <list>
 
 #include "network_config.h"
@@ -37,6 +37,14 @@ namespace EDNetwork
         bool isConnected() { return _isWiFiConnected || _isEthernetConnected; }
         void OnConnect(ConnectFunction fn) { _connectCallbacks.push_back(std::move(fn)); }
 
+        const Config& config() const { return _config; }
+        Config& config() { return _config; }
+        Modes mode() const { return _mode; }
+        bool isWiFiConnected() const { return _isWiFiConnected; }
+        bool isEthernetConnected() const { return _isEthernetConnected; }
+        bool isFallbackAP() const { return _isFallbackAP; }
+        void applyConfig();
+
     private:
         void runEthernet(
             uint8_t phy_addr, 
@@ -53,6 +61,7 @@ namespace EDNetwork
 
     private:
         Config _config;
+        bool _hasEth = false;
         bool _isWiFiConnected = false;
         bool _isEthernetConnected = false;
         bool _prevIsConnected = false;

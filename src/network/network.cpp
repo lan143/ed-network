@@ -17,6 +17,7 @@ void EDNetwork::NetworkMgr::init(
 ) {
     ESP_LOGI("network", "init start");
     _config = config;
+    _hasEth = hasEth;
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
         switch (event) {
@@ -141,6 +142,39 @@ void EDNetwork::NetworkMgr::runWifiAP()
     WiFi.mode(WIFI_AP);
     WiFi.softAP(_config.wifiAPSSID, _config.wifiAPHasPassword ? _config.wifiAPPassword : NULL);
     _mode = EDNetwork::MODE_WIFI_AP;
+}
+
+void EDNetwork::NetworkMgr::applyConfig()
+{
+    ESP_LOGI("network", "applying network config");
+
+    if (_hasEth && _mode == EDNetwork::MODE_ETHERNET) {
+        ESP_LOGI("network", "ethernet interface has no live config to re-apply");
+    } else if (_mode == EDNetwork::MODE_WIFI) {
+        if (_config.isAPMode) {
+            ESP_LOGI("network", "switching from wifi client to access point");
+            WiFi.disconnect(false);
+            runWifiAP();
+        } else {
+            ESP_LOGI("network", "re-applying wifi client config");
+            WiFi.disconnect(false);
+            runWifi();
+        }
+    } else if (_mode == EDNetwork::MODE_WIFI_AP) {
+        if (!_config.isAPMode) {
+            ESP_LOGI("network", "leaving access point mode, switching to wifi client");
+            WiFi.softAPdisconnect(true);
+            _isFallbackAP = false;
+            runWifi();
+        } else {
+            ESP_LOGI("network", "re-applying wifi access point config");
+            WiFi.softAPdisconnect(true);
+            _isFallbackAP = false;
+            runWifiAP();
+        }
+    }
+
+    _failedConnectCounts = 0;
 }
 
 void EDNetwork::NetworkMgr::runFallbackWifiAP()

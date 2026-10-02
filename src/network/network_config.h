@@ -1,7 +1,7 @@
 #pragma once
 
-#define WIFI_SSID_LEN 32 + 1
-#define WIFI_PWD_LEN 64 + 1
+#define WIFI_SSID_LEN (32 + 1)
+#define WIFI_PWD_LEN (64 + 1)
 
 namespace EDNetwork
 {

@@ -12,9 +12,11 @@
       "type": "git",
       "url": "https://github.com/lan143/ed-network.git"
     },
-    "version": "0.1.0",
+    "version": "0.2.0",
     "frameworks": "arduino",
     "platforms": ["espressif32"],
-    "dependencies": []
-  }
-  
+    "dependencies": {
+      "ESP32Async/ESPAsyncWebServer": "*",
+      "bblanchon/ArduinoJson": "*"
+    }
+}
