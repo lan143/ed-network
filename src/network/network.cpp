@@ -53,6 +53,12 @@ void EDNetwork::NetworkMgr::init(
 
 void EDNetwork::NetworkMgr::loop()
 {
+    const int64_t applyDue = _applyConfigDueUs.load();
+    if (applyDue != 0 && esp_timer_get_time() >= applyDue) {
+        _applyConfigDueUs.store(0);
+        applyConfig();
+    }
+
     if (_lastCheckConnectTime + 500000 < esp_timer_get_time()) {
         if (_prevIsConnected != isConnected()) {
             for (const auto& fn : _connectCallbacks) {
@@ -175,6 +181,13 @@ void EDNetwork::NetworkMgr::applyConfig()
     }
 
     _failedConnectCounts = 0;
+}
+
+void EDNetwork::NetworkMgr::requestApplyConfig()
+{
+    // Defer to loopTask so the pending HTTP response is flushed first:
+    // reconfiguring the interface can drop the connection serving the request.
+    _applyConfigDueUs.store(esp_timer_get_time() + 300000);
 }
 
 void EDNetwork::NetworkMgr::runFallbackWifiAP()

@@ -40,7 +40,7 @@ namespace EDNetwork
     private:
         void handleWifiList(AsyncWebServerRequest* request);
         void handleGetSettings(AsyncWebServerRequest* request);
-        void handleSettingsUpload(uint8_t* data, size_t len, size_t index, size_t total);
+        void handleSettingsBody(uint8_t* data, size_t len, size_t index, size_t total);
         void handlePostSettings(AsyncWebServerRequest* request);
         void handleStatus(AsyncWebServerRequest* request);
         void fillSettingsJson(JsonObject out) const;

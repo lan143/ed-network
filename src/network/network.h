@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ETH.h>
 #include <list>
+#include <atomic>
 
 #include "network_config.h"
 
@@ -44,6 +45,7 @@ namespace EDNetwork
         bool isEthernetConnected() const { return _isEthernetConnected; }
         bool isFallbackAP() const { return _isFallbackAP; }
         void applyConfig();
+        void requestApplyConfig();
 
     private:
         void runEthernet(
@@ -72,6 +74,7 @@ namespace EDNetwork
         uint64_t _lastCheckConnectTime = 0;
         uint32_t _failedConnectCounts = 0;
         std::list<ConnectFunction> _connectCallbacks;
+        std::atomic<int64_t> _applyConfigDueUs{0};
     };
 
 }

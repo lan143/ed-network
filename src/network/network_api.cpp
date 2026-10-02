@@ -35,7 +35,7 @@ void EDNetwork::NetworkApi::registerRoutes(AsyncWebServer& server)
 {
     server.on("/api/wifi/list", HTTP_GET, [this](AsyncWebServerRequest* r) { handleWifiList(r); });
     server.on("/api/network/settings", HTTP_GET, [this](AsyncWebServerRequest* r) { handleGetSettings(r); });
-    server.on("/api/network/settings", HTTP_POST, [this](AsyncWebServerRequest* r) { handlePostSettings(r); }, [this](uint8_t* d, size_t l, size_t i, size_t t) { handleSettingsUpload(d, l, i, t); });
+    server.on("/api/network/settings", HTTP_POST, [this](AsyncWebServerRequest* r) { handlePostSettings(r); }, nullptr, [this](AsyncWebServerRequest*, uint8_t* data, size_t len, size_t index, size_t total) { handleSettingsBody(data, len, index, total); });
     server.on("/api/network/status", HTTP_GET, [this](AsyncWebServerRequest* r) { handleStatus(r); });
 }
 
@@ -100,13 +100,17 @@ void EDNetwork::NetworkApi::fillSettingsJson(JsonObject out) const
     out["hasWifiAPPassword"] = strlen(config.wifiAPPassword) > 0;
 }
 
-void EDNetwork::NetworkApi::handleSettingsUpload(uint8_t* data, size_t len, size_t index, size_t total)
+void EDNetwork::NetworkApi::handleSettingsBody(uint8_t* data, size_t len, size_t index, size_t total)
 {
     if (index == 0) {
         _jsonBody = "";
     }
 
     if (total > 2048) {
+        return;
+    }
+
+    if (_jsonBody.length() + len > 2048) {
         return;
     }
 
@@ -296,8 +300,9 @@ void EDNetwork::NetworkApi::handlePostSettings(AsyncWebServerRequest* request)
     fillSettingsJson(root);
     makeResponse(request, 200, doc);
 
-    // apply last: reconfiguring the interface may drop the connection serving this request
-    _mgr.applyConfig();
+    // apply last: reconfiguring the interface may drop the connection serving this request,
+    // so defer it until after the response has been flushed
+    _mgr.requestApplyConfig();
 }
 
 void EDNetwork::NetworkApi::handleStatus(AsyncWebServerRequest* request)
@@ -364,8 +369,8 @@ void EDNetwork::NetworkApi::handleStatus(AsyncWebServerRequest* request)
         eth["ip"] = ethIp;
         eth["mac"] = ethMac;
         eth["linkUp"] = ETH.linkUp();
-        eth["speed"] = (int)ETH.speed();
-        eth["duplex"] = (int)ETH.duplex();
+        eth["speed"] = (int)ETH.linkSpeed();
+        eth["duplex"] = ETH.fullDuplex() ? 1 : 0;
     }
 
     makeResponse(request, 200, doc);
